@@ -2,9 +2,22 @@
   "name": "protractor-tests",
   "version": "0.0.1",
   "devDependencies": {
-    "protractor": "4.0.8"
+    "gulp": "3.9.1",
+    "gulp-notify": "2.2.0",
+    "gulp-plumber": "^1.1.0",
+    "gulp-protractor": "3.0.0",
+    "gulp-util": "3.0.7",
+    "jasmine-reporters": "2.2.0",
+    "phantomjs-prebuilt": "^2.1.14",
+    "plumber": "^0.4.8",
+    "process-nextick-args": "^1.0.7",
+    "protractor": "4.0.11",
+    "protractor-jasmine2-screenshot-reporter": "^0.4.0",
+    "webdriver-manager": "^12.0.6",
+    "yargs": "5.0.0"
   },
   "scripts": {
-    "install": "node ./node_modules/protractor/bin/webdriver-manager update"
+    "test": "gulp itest",
+    "postinstall": "webdriver-manager update"
   }
 }

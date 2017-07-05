@@ -1,29 +1,79 @@
+const os = require('os');
+
+const HtmlScreenshotReporter = require("protractor-jasmine2-screenshot-reporter");
+const JasmineReporters = require('jasmine-reporters');
+
+const prefix = './'
+
+var webbrowserDriver= '';
+if (os.platform() === 'win32') {
+    webbrowserDriver = prefix + 'node_modules/webdriver-manager/selenium/chromedriver_2.30.exe';
+} else {
+    webbrowserDriver = prefix + 'node_modules/webdriver-manager/selenium/chromedriver_2.30';
+}
+
 exports.config = {
-  // The address of a running selenium server.
-  seleniumAddress: 'http://localhost:4444/wd/hub',
-  //directConnect: true,
+    seleniumServerJar: prefix + 'node_modules/webdriver-manager/selenium/selenium-server-standalone-2.53.1.jar',
+    chromeDriver: webbrowserDriver,
+    allScriptsTimeout: 20000,
 
-  // Spec patterns are relative to the location of this config.
-  specs: [
-    'spec/*_spec.js'
-  ],
+    suites: {
+        stutio: './e2e/studio/*.js'
+    },
 
+    capabilities: {
+        'browserName': 'chrome',
+        'phantomjs.binary.path': require('phantomjs-prebuilt').path,
+        'phantomjs.ghostdriver.cli.args': ['--loglevel=DEBUG']
+    },
 
-  capabilities: {
-    'browserName': 'chrome',
-    'chromeOptions': {'args': ['--disable-extensions']}
-  },
+    directConnect: true,
+    // baseUrl: 'http://localhost:8080/',
 
+    framework: 'jasmine2',
 
-  // A base URL for your application under test. Calls to protractor.get()
-  // with relative paths will be prepended with this.
-  //baseUrl: 'http://localhost:8080',
+    jasmineNodeOpts: {
+        showColors: true,
+        defaultTimeoutInterval: 30000
+    },
 
-  jasmineNodeOpts: {
-    onComplete: null,
-    isVerbose: false,
-    showColors: true,
-    includeStackTrace: true,
-    defaultTimeoutInterval: 10000
-  }
+    onPrepare: function() {
+        // Disable animations so e2e tests run more quickly
+        var disableNgAnimate = function() {
+            angular
+                .module('disableNgAnimate', [])
+                .run(['$animate', function($animate) {
+                    $animate.enabled(false);
+                }]);
+        };
+
+        var disableCssAnimate = function() {
+            angular
+                .module('disableCssAnimate', [])
+                .run(function() {
+                    var style = document.createElement('style');
+                    style.type = 'text/css';
+                    style.innerHTML = 'body * {' +
+                        '-webkit-transition: none !important;' +
+                        '-moz-transition: none !important;' +
+                        '-o-transition: none !important;' +
+                        '-ms-transition: none !important;' +
+                        'transition: none !important;' +
+                        '}';
+                    document.getElementsByTagName('head')[0].appendChild(style);
+                });
+        };
+
+        browser.addMockModule('disableNgAnimate', disableNgAnimate);
+        browser.addMockModule('disableCssAnimate', disableCssAnimate);
+
+        browser.driver.manage().window().setSize(1280, 1024);
+        jasmine.getEnv().addReporter(new JasmineReporters.JUnitXmlReporter({
+            savePath: 'build/reports/e2e',
+            consolidateAll: false
+        }));
+        jasmine.getEnv().addReporter(new HtmlScreenshotReporter({
+            dest: "build/reports/e2e/screenshots"
+        }));
+    }
 };
